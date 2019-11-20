@@ -7,6 +7,10 @@ from . forms import EmailPostForm, CommentForm
 from django.core.mail import send_mail
 from taggit.models import Tag
 from django.db.models import Count
+from micro.secrets import *
+from .forms import EmailPostForm, CommentForm, SearchForm
+from haystack.query import SearchQuerySet
+
 
 def post_detail(request, year, month, day, post):
     post = get_object_or_404(Post, slug=post,                                                       status='published',                                              publish__year=year,                                              publish__month=month,                                            publish__day=day)
@@ -26,8 +30,6 @@ def post_detail(request, year, month, day, post):
     
     else:
         comment_form = CommentForm()
-    
-
     # list of similar posts
     post_tags_ids = post.tags.values_list('id', flat=True)
     similar_posts = Post.published.filter(tags__in=post_tags_ids)\
@@ -72,7 +74,7 @@ def post_share(request, post_id):
             # message = f"Read {post.title} at {post_url}\n\n{cd['name']}'s comments: {cd['comments']}'"
 
 
-            send_mail(subject, message, 'tmagudogo@gmail.com', [cd['to']])
+            send_mail(subject, message, email_address, [cd['to']])
             sent = True
     else:
         form = EmailPostForm()
@@ -111,3 +113,31 @@ def post_list(request, tag_slug=None):
     }
 
     return render(request, 'blog/post/list.html', context,)
+
+def post_search(request):
+    form = SearchForm()
+    # cd =""
+    # results = ""
+    # total_results = ""
+
+    if "query" in request.GET:
+        form = SearchForm(request.GET)
+        if form.is_valid():
+            cd = form.cleaned_data
+            a =  cd['query']
+            results = SearchQuerySet().models(Post)\
+                 .filter(content=a).load_all()
+            # count total results
+            total_results = results.count()
+
+            context =  {
+                'form': form,
+                'results': results,
+                'total_results': total_results,
+                'cd': cd,
+                'a': a
+                }
+            return render(request, 'blog/post/search.html', context)            
+    else:
+        pass
+    return render(request, 'blog/post/search.html', {'form':form})

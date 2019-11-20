@@ -11,7 +11,7 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 """
 
 import os
-from . secrets import *
+from .secrets import *
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -38,8 +38,15 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    #apps
     'blog',
+    #tag manager
     'taggit',
+    #site maps
+    'django.contrib.sites',
+    'django.contrib.sitemaps',
+    #haystack
+    'haystack',
 ]
 
 MIDDLEWARE = [
@@ -85,6 +92,13 @@ DATABASES = {
     }
 }
 
+#haystack connections
+HAYSTACK_CONNECTIONS = {
+    'default': {
+        'ENGINE': 'haystack.backends.solr_backend.SolrEngine',
+        'URL': 'http://127.0.0.1:8983/solr/blog_c',
+    },
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/2.2/ref/settings/#auth-password-validators
@@ -132,3 +146,5 @@ EMAIL_HOST_USER = email_address
 EMAIL_HOST_PASSWORD = email_password
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
+
+SITE_ID = 1
